@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 // Main application component
 const Home: React.FC = () => {
@@ -25,30 +26,36 @@ const Home: React.FC = () => {
   };
 
   // Simulate the optimization process with a loading state
-  const handleOptimize = async () => {
+const handleOptimize = async () => {
     if (!resumeFile || jobDescription.trim() === '') {
-      alert('Please upload a resume and paste the job description.');
-      return;
+        // ... (existing alert)
+        return;
     }
 
-    // Set a loading state
     setIsOptimizing(true);
     setOptimizedResume(null);
 
+    const formData = new FormData();
+    formData.append('resume', resumeFile); // 'resume' is the field name for the file
+    formData.append('description', jobDescription); // You can also send other data
+
     try {
-      const formData = new FormData()
-      formData.append('resume', resumeFile);
-      formData.append('jobDescription', jobDescription);
-      console.log("Form Data:", formData);
-      
-      setOptimizedResume("This is optimizer resume");
+
+      const response = await axios.post('http://localhost:8000/optimize', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        // Assuming the response from the server contains the optimized resume
+        setOptimizedResume(response.data.optimized_resume_content);
     } catch (error) {
-      console.error("Optimization failed:", error);
-      alert("An error occurred during optimization. Please try again.");
+        console.error("Optimization failed:", error);
+        alert("An error occurred. Please try again.");
     } finally {
-      setIsOptimizing(false);
+        setIsOptimizing(false);
     }
-  };
+};
 
   const isButtonDisabled = !resumeFile || jobDescription.trim() === '' || isOptimizing;
 
